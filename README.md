@@ -19,17 +19,11 @@ This is a very simple ray tracer that supports:
 
 ## Libraries
 - PyQt5
+- PyEngine (https://github.com/RodrigoFigueroaM/pyEngine)
 
 ### How to execute program:
-1) run virtal environment to run all necessary applications.
+1) cd into any of the directory and run
 ```sh
-$ source CurvesEnv/bin/activate
+$ python main.py
 ```
-2) cd to folder
-```sh
-$ cd AnyDegreeBezier
-```
-3) cd into any of the directories and run any of the programs for example
-```sh
-$ python AnyDegreeBezierApp.py
-```
+2) output file under the name output.ppm
