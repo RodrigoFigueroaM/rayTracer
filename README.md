@@ -4,7 +4,7 @@ This is a very simple ray tracer that supports:
 - [x] Ray-Sphere intersection
 - [x] Ray-Triangle Intersection
 - [x] Point Light
-- [ ] Shadows
+- [x] Shadows (needs more testing)
 - [ ] Reflection
 - [ ] Refraction
 - [ ] Ray-Polygon Intersection
