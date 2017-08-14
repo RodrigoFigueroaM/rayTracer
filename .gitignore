@@ -103,3 +103,10 @@ ENV/
 
 .DS_Store
 .idea/
+testsImgs
+test.py
+rayTracerBAE.ppm
+rayTracershadows.ppm
+rayTracerTwo.ppm
+perspectiveRayCast.ppm
+CamOutBook.ppm
