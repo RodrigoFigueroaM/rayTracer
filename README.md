@@ -13,11 +13,11 @@ This is a very simple ray tracer that supports:
 - [ ] Ray-Cylinder intersection
 
 ## Example output
-- simple raytracer
+#### simple raytracer
 ![alt text](https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/output.jpg)
-- shadow
+#### shadow
 ![alt text](https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/shadows.jpg)
-- shadow and reflection
+#### shadow and reflection
 ![alt text](https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/reflection2.jpg)
 
 ## Libraries
