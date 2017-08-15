@@ -13,14 +13,19 @@ This is a very simple ray tracer that supports:
 - [ ] Ray-Cylinder intersection
 
 ## Example output
-![alt text](https://github.com/RodrigoFigueroaM/rayTracer/blob/master/output/output.ppm)
-
-![alt text](https://github.com/RodrigoFigueroaM/rayTracer/blob/master/output.ppm)
+- simple raytracer
+![alt text](https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/output.jpg)
+- shadow
+![alt text](https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/shadows.jpg)
+- shadow and reflection
+![alt text](https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/reflection2.jpg)
 
 ## Libraries
 - PyQt5
 - PyEngine (https://github.com/RodrigoFigueroaM/pyEngine)
 
+### Note:
+ppm images are very huge so i'll be using a ppm to jpg converter to display output images
 ### How to execute program:
 1) cd into any of the directory and run
 ```sh
