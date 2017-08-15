@@ -12,4 +12,4 @@ def reflect(I, N):
     """
     Nnorm = N.normalize()
     R = I - 2.0 * QVector3D.dotProduct(I, N) * N
-    return R
+    return R.normalized()

@@ -4,8 +4,10 @@ import math
 from PyQt5.QtGui import QMatrix4x4, QVector3D
 from pyEngine.Camera import Camera
 
+EPSILON = 0.0000001
 
-class RayTracerObject(abc.ABC):
+
+class Surface(abc.ABC):
     def __init__(self, color=QVector3D(255, 255, 255)):
         self.color = color
 
@@ -14,8 +16,9 @@ class RayTracerObject(abc.ABC):
         pass
 
 
-class Sphere(RayTracerObject):
+class Sphere(Surface):
     """A sphere is defined with center c = (xc,yc,zc) and radius R """
+
     def __init__(self, center=QVector3D(0, 0, 0), radius=1, color=QVector3D(255, 255, 255)):
         """
         :param center:  QVector3D
@@ -33,7 +36,7 @@ class Sphere(RayTracerObject):
         :return:
             a QVector3D with the normal at a given point p
         """
-        return ((p - self.c)/self.r).normalized()
+        return ((p - self.c) / self.r).normalized()
 
     def intersect(self, ray):
         """ Given a ray p(t) = e + td and an implicit surface f(p) = 0.
@@ -54,17 +57,22 @@ class Sphere(RayTracerObject):
         A = QVector3D.dotProduct(ray.d, ray.d)
         B = QVector3D.dotProduct(2 * ray.d, ec)
         C = QVector3D.dotProduct(ec, ec) - self.r * self.r
-        discriminant = B*B - 4 * A * C
+        discriminant = B * B - 4 * A * C
         if discriminant < 0.000001:
             return False
         t0 = (- B + math.sqrt(discriminant))
-        t1 = (- B - math.sqrt(discriminant))
+        # if t0 > EPSILON:
+        #     return t0
+        # t1 = (- B - math.sqrt(discriminant))
+        # if t1 > EPSILON:
+        #     return t1
         return True
 
 
-class Triangle(RayTracerObject):
+class Triangle(Surface):
     """A triangle can be defined only with three vertices """
-    def __init__(self, a=QVector3D(0, 0, 0), b=QVector3D(0, 2, 0), c=QVector3D(2, 0, 0), color=QVector3D()):
+
+    def __init__(self, a=QVector3D(0, 0, 0), b=QVector3D(0, 2, 0), c=QVector3D(2, 0, 0), color=QVector3D(255, 255, 255)):
         """
         :param a:  QVector3D
         :param b:  QVector3D
@@ -76,7 +84,7 @@ class Triangle(RayTracerObject):
         self.c = c
         self._normal = self.normal
 
-    def intersect(self, ray, t0=0, t1=1):
+    def intersect(self, ray, t0=0, t1=100):
         """ To determine intersection we need a system of linear equations:
             e+td=f(u,v), we have three unknowns t,u, and v.
             The intersection will occur when
@@ -109,23 +117,58 @@ class Triangle(RayTracerObject):
                        self.a.z() - self.b.z(), self.a.z() - self.c.z(), self.a.z() - ray.e.z(), 0,
                        0, 0, 0, 1)
 
-        t = T.determinant()/A.determinant()
+        t = T.determinant() / A.determinant()
         # First compute t
-        if (t < t0) or (t > t1):
+        if t1 < t < t0:
             return False
         # Then compute γ
-        y = Y.determinant()/A.determinant()
+        y = Y.determinant() / A.determinant()
         if (y < 0) or (y > 1):
             return False
         # Finally compute β
-        b = B.determinant()/A.determinant()
-        if (b < 0) or (b > 1-y):
+        b = B.determinant() / A.determinant()
+        if (b < 0) or (b > 1 - y):
             return False
         return True
 
+    def normalAt(self, p):
+        return self._normal
+
     @property
     def normal(self):
-        return QVector3D.crossProduct(self.c - self.a, self.b - self.a)
+        return QVector3D.crossProduct(self.c - self.a, self.b - self.a).normalized()
+
+
+class Polygon(Surface):
+    """A Polygon m vertices p1 through pm"""
+
+    def __init__(self, vertices = [], color=QVector3D(255, 255, 255)):
+        """
+        :param vertices: list of QVector3D
+        :param color:
+        """
+        super().__init__(color)
+        self.vertices = vertices
+        self._normal = self.normal
+
+    def intersect(self, ray):
+        p1 = self.vertices[0]
+        denom = QVector3D.dotProduct(ray.d, self._normal)
+        t = QVector3D.dotProduct(p1 - ray.e, self._normal) / denom
+        if abs(denom) < EPSILON: # the  polygon is parallel to the ray
+            return False
+        p = ray.e + t * ray.d
+        return True
+
+    def normalAt(self, p):
+        return self._normal
+
+    @property
+    def normal(self):
+        a = self.vertices[0]
+        b = self.vertices[1]
+        c = self.vertices[2]
+        return QVector3D.crossProduct(c - a, b - a)
 
 
 class Light(Sphere):
@@ -134,13 +177,6 @@ class Light(Sphere):
 
     def intersect(self, ray):
         return super().intersect(ray)
-
-
-class Ray:
-    """generate a ray = e + td"""
-    def __init__(self, origin, direction):
-        self.e = origin
-        self.d = direction
 
 
 def initFile(filename, WIDTH=500, HEIGHT=500):
@@ -190,7 +226,8 @@ def reflect(I, N):
     R = I - 2.0 * QVector3D.dotProduct(I, N) * N
     return R
 
-def clampPixel(pixel = QVector3D()):
+
+def clampPixel(pixel=QVector3D()):
     """ Clamps values for a given pixel(color) between 0 and 255
     :param pixel:  QVector3D color to be clamped
     :return:
@@ -218,73 +255,63 @@ def clampPixel(pixel = QVector3D()):
     del pixel
     return clampedPixel
 
+
 def main():
     WIDTH = 500
     HEIGHT = 500
-    file = initFile("output.ppm")
-    camera = Camera( position=QVector3D(0, 1.1, -3),
-                 direction=QVector3D(0, 1, 0),
-                 up=QVector3D(0, 1, 0),
-                 fov = 90)
+    file = initFile("CamOutBook.ppm")
+    camera = Camera(position=QVector3D(0, 0, 3),
+                    direction=QVector3D(0, 0, -1),
+                    up=QVector3D(0, 1, 0),
+                    fov=45.0)
+    objects = [
+        Triangle(a=QVector3D(100, 0, -30), b=QVector3D(400, 400, -30),
+                 c=QVector3D(0, 50,  -30), color=QVector3D(255, 255, 100)),
+        Sphere(QVector3D(WIDTH * 0.5, HEIGHT * 0.5, -3), 50, QVector3D(100, 0, 0)),
+        Sphere(QVector3D(WIDTH * 0.5, 100 + HEIGHT * 0.5, 80), 20, QVector3D(0, 255, 0)),
+        Sphere(QVector3D(WIDTH * 0.6, -100 + HEIGHT * 0.5, -2), 30, QVector3D(0, 0, 100)),
+        Sphere(QVector3D(WIDTH * 0.2, HEIGHT * 0.2, 2), 10, QVector3D(200, 0, 200)),
 
-    spheres = [Sphere(QVector3D(WIDTH * 0.5, HEIGHT * 0.5, 50), 50,  QVector3D(100, 0, 0)),
-                Sphere(QVector3D(WIDTH * 0.5, 100 + HEIGHT * 0.5, 20), 20, QVector3D(0, 0, 0)),
-                Sphere(QVector3D(WIDTH * 0.6, -100 + HEIGHT * 0.5, 25), 30, QVector3D(0, 0, 100)),
-                Sphere(QVector3D(WIDTH * 0.2, HEIGHT * 0.2, 20), 20, QVector3D(200, 0, 200))]
+        # Sphere(QVector3D(WIDTH * 0.5, HEIGHT * 0.5, 0), 50, QVector3D(100, 0, 0)),
+        # Sphere(QVector3D(WIDTH * 0.5, 100 + HEIGHT * 0.5, 1), 20, QVector3D(0, 0, 0)),
+        # Sphere(QVector3D(WIDTH * 0.6, -100 + HEIGHT * 0.5, 2), 30, QVector3D(0, 0, 100)),
+        # Sphere(QVector3D(WIDTH * 0.2, HEIGHT * 0.2, 3), 20, QVector3D(200, 0, 200))
+    ]
 
-    light = Light(QVector3D(100, 0, -200), 2, color=QVector3D(220, 220, 220))
+    light = Light(QVector3D(200, 100, 3), 2, color=QVector3D(220, 220, 220))
 
-    triangle = Triangle(a=QVector3D(0, 0, 0), b=QVector3D(0, 500, 0),
-                        c=QVector3D(500, 0, 0), color=QVector3D(200, 130, 100))
-
-    R = QMatrix4x4()
-    R.rotate(60, 0, 20)
-    camera.rotate(R)
-    eyeDir = camera.direction
     print(camera.position)
     print(camera.direction)
+    s = 1.0
     for y in range(0, HEIGHT):
         for x in range(0, WIDTH):
-            # ra = camera.mouseRay(x,y,WIDTH,HEIGHT)
-            # print(ra[0].x(), ra[0].y(), ra[0].z())
-            # ray = Ray(camera.position, camera.direction )
-            # ray = Ray(camera.panTo(QVector3D(x,y,0))[0], camera.panTo(QVector3D(x,y,0))[1])
-            ray = Ray(QVector3D(x, y, 0), QVector3D(0, 0, 1))
+            # ray = Camera.Ray(QVector3D(x,y,camera.position.z()), QVector3D(0,0,camera.position.z()+1))
+            # ray = camera.rayCast(x, y, WIDTH, HEIGHT)
+            # xw = s * (x - 0.5 * (WIDTH - 1.0))
+            # yw = s * (y - 0.5 * (HEIGHT - 1.0))
+            # ray = Camera.Ray(QVector3D(xw,yw, 100), QVector3D(0,0,-1))
+            # ray = camera.rayCast(xw, yw, WIDTH, HEIGHT)
+            fovy = HEIGHT/WIDTH * camera.fov
+            mx = ((2 * x - WIDTH) / WIDTH) * math.tan(camera.fov)
+            my = ((2 * y - HEIGHT) / HEIGHT) * math.tan(fovy)
+
+            direction = QVector3D(mx, my, -1) - camera.position
+            ray = Camera.Ray(camera.position, direction.normalized())
+            # print(ray)
+            # print(ray)
             pixel = QVector3D(0, 0, 0)
-
-            if triangle.intersect(ray):
-                ambientLight = QVector3D(51, 51, 51)
-                p = ray.e + ray.d
-                lightDir = QVector3D.normalized(light.c - p)  # L
-                normal = triangle.normal  # N
-                eyeDir = QVector3D(0, 0, 0)  # V
-                R = reflect(lightDir, normal)
-                H = (lightDir + eyeDir).normalized()
-                NdotL = QVector3D.dotProduct(normal, lightDir)
-
-                color = computeLight(normal=normal,
-                                     lightDirection=lightDir,
-                                     diffuseColor=QVector3D(0.5, 0.5, 0.5),
-                                     lightColor=light.color,
-                                     halfVector=H,
-                                     specularColor=QVector3D(1, 1, 1),
-                                     shininess=3000)
-
-                dt = QVector3D.dotProduct(lightDir.normalized(), normal.normalized())
-
-                pixel = ambientLight + triangle.color + color
-                pixel = clampPixel(pixel=pixel)
-
-            for sphere in spheres:
-                if sphere.intersect(ray):
+            for obj in objects:
+                if obj.intersect(ray):
                     ambientLight = QVector3D(51, 51, 51)
                     p = ray.e + ray.d
                     lightDir = QVector3D.normalized(light.c - p)  # L
-                    normal = sphere.normalAt(p)  # N
-                    eyeDir = QVector3D(0, 0, 0)  # V
-                    R = reflect(lightDir, normal)
-                    H = (lightDir + eyeDir).normalized()
-                    NdotL = QVector3D.dotProduct(normal, lightDir)
+                    normal = obj.normalAt(p)  # N
+                    eyeDir = (camera.position - p).normalized()  # V
+                    # eyeDir = (ray.e - p).normalized()
+                    # eyeDir = QVector3D(0,0,0)
+                    # R = reflect(lightDir, normal)
+                    H = (lightDir + eyeDir).normalized() # H
+                    # NdotL = QVector3D.dotProduct(normal, lightDir)
 
                     color = computeLight(normal=normal,
                                          lightDirection=lightDir,
@@ -292,11 +319,11 @@ def main():
                                          lightColor=light.color,
                                          halfVector=H,
                                          specularColor=QVector3D(1, 1, 1),
-                                         shininess= 150)
+                                         shininess=1.0)
 
-                    dt = QVector3D.dotProduct(lightDir.normalized(), normal.normalized())
-
-                    pixel = ambientLight + sphere.color + color
+                    ambientLightIntensity = 0.5
+                    pixel = ambientLight * ambientLightIntensity + obj.color + color
+                    pixel = obj.color
                     pixel = clampPixel(pixel=pixel)
 
             if light.intersect(ray):
@@ -306,8 +333,12 @@ def main():
     file.close()
 
 
+def test():
+    pass
+
 if __name__ == "__main__":
     main()
+    # test()
+
     print("DONE")
     exit(0)
-

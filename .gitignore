@@ -105,8 +105,14 @@ ENV/
 .idea/
 testsImgs
 test.py
-rayTracerBAE.ppm
+*.ppm
 rayTracershadows.ppm
 rayTracerTwo.ppm
 perspectiveRayCast.ppm
 CamOutBook.ppm
+output/outputblinn.ppm
+output/outputtest.ppm
+rayTracerCenter.ppm
+rayTracerCer.ppm
+rayTracerdepth.ppm
+rayTracerdepth5.ppm

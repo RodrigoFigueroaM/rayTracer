@@ -98,8 +98,9 @@ class Triangle(Surface):
         self.b = b
         self.c = c
         self._normal = self.normal
+        self._epsilon = 0.001
 
-    def intersect(self, ray, t0=0, t1=100):
+    def intersect(self, ray, t0=0, t1=10000):
         """ To determine intersection we need a system of linear equations:
             e+td=f(u,v), we have three unknowns t,u, and v.
             The intersection will occur when
@@ -145,7 +146,7 @@ class Triangle(Surface):
             b = B.determinant() / A.determinant()
             if (b < 0) or (b > 1 - y):
                 return False
-        return True
+        return t
 
     def normalAt(self, p):
         return self._normal
@@ -153,6 +154,14 @@ class Triangle(Surface):
     @property
     def normal(self):
         return QVector3D.crossProduct(self.c - self.a, self.b - self.a).normalized()
+
+    @property
+    def epsilon(self):
+        return self._epsilon
+
+    @epsilon.setter
+    def epsilon(self, epsilon):
+        self._epsilon = epsilon
 
 
 class Polygon(Surface):
