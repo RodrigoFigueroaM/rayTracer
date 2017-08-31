@@ -15,7 +15,7 @@ This is a very simple ray tracer that supports:
 
 
 ## Example output
-#### shadow
+#### refraction
 ![alt text](https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/refraction.jpg)
 #### shadow
 ![alt text](https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/shadows.jpg)
