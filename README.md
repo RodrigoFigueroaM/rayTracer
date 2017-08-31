@@ -8,23 +8,23 @@ This is a very simple ray tracer that supports:
 - [x] Reflection
 - [x] Refraction
 - [x] Ray-Plane Intersection
-- [x] Anti-aliasing using jittering
+- [x] Antialiasing using jittering
 - [ ] Load and intersect different models
 - [ ] Ray-Box intersection
 - [ ] Ray-Cylinder intersection
 
 
 ## Example output
-#### refraction
-<img src="https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/refraction.jpg" widht="450" height="450px"/>
+#### Refraction and antialiasing
+<img src="https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/refractionAntialising.jpg" widht="450" height="450px"/>
 
-#### shadow
+#### Shadow
 <img src="https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/shadows.jpg" widht="450" height="450px"/>
 
-#### shadow and reflection
+#### Shadow and reflection
 <img src="https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/reflection2.jpg" widht="450" height="450px"/>
 
-#### simple raytracer
+#### Simple raytracer
 <img src="https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/output.jpg" widht="450" height="450px"/>
 
 ## Libraries
