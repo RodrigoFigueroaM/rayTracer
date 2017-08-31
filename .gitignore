@@ -116,3 +116,7 @@ rayTracerCenter.ppm
 rayTracerCer.ppm
 rayTracerdepth.ppm
 rayTracerdepth5.ppm
+
+c++test.py
+GoochWorld.py
+almostThere.py
