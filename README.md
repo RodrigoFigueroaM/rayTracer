@@ -16,13 +16,16 @@ This is a very simple ray tracer that supports:
 
 ## Example output
 #### refraction
-![alt text](https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/refraction.jpg)
+<img src="https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/refraction.jpg" widht="450" height="450px"/>
+
 #### shadow
-![alt text](https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/shadows.jpg)
+<img src="https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/shadows.jpg" widht="450" height="450px"/>
+
 #### shadow and reflection
-![alt text](https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/reflection2.jpg)
+<img src="https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/reflection2.jpg" widht="450" height="450px"/>
+
 #### simple raytracer
-![alt text](https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/output.jpg)
+<img src="https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/output.jpg" widht="450" height="450px"/>
 
 ## Libraries
 - PyQt5
