@@ -2,11 +2,14 @@
 import abc
 import math
 from PyQt5.QtGui import QMatrix4x4, QVector3D
+# from enum import Enum
+
 
 EPSILON = 0.0000001
 
 
 class Surface(abc.ABC):
+
     def __init__(self, color=QVector3D(255, 255, 255), material=None):
         self.color = color
         self.material = material
@@ -20,17 +23,21 @@ class Surface(abc.ABC):
     def epsilon(self):
         return self._epsilon
 
+    @abc.abstractmethod
+    def normalAt(self, p=None):
+        pass
+
 
 class Sphere(Surface):
     """A sphere is defined with center c = (xc,yc,zc) and radius R """
 
-    def __init__(self, center=QVector3D(0, 0, 0), radius=1.0, color=QVector3D(255, 255, 255)):
+    def __init__(self, center=QVector3D(0, 0, 0), radius=1.0, color=QVector3D(255, 255, 255), material=None):
         """
         :param center:  QVector3D
         :param radius:  QVector3D
         :param color:  QVector3D
         """
-        super().__init__(color)
+        super().__init__(color, material)
         self.c = center
         self.r = radius
         self._epsilon = 0.1
@@ -75,10 +82,6 @@ class Sphere(Surface):
     def epsilon(self):
         return self._epsilon
 
-    @epsilon.setter
-    def epsilon(self, epsilon):
-        self._epsilon = epsilon
-
     def __str__(self):
         return "{}".format(self.color)
 
@@ -87,13 +90,13 @@ class Triangle(Surface):
     """A triangle can be defined only with three vertices """
 
     def __init__(self, a=QVector3D(0, 0, 0), b=QVector3D(0, 2, 0), c=QVector3D(2, 0, 0),
-                 color=QVector3D(255, 255, 255)):
+                 color=QVector3D(255, 255, 255), material=None):
         """
         :param a:  QVector3D
         :param b:  QVector3D
         :param c:  QVector3D
         """
-        super().__init__(color)
+        super().__init__(color, material)
         self.a = a
         self.b = b
         self.c = c
@@ -159,10 +162,6 @@ class Triangle(Surface):
     def epsilon(self):
         return self._epsilon
 
-    @epsilon.setter
-    def epsilon(self, epsilon):
-        self._epsilon = epsilon
-
 
 class Polygon(Surface):
     """A Polygon m vertices p1 through pm"""
@@ -186,7 +185,7 @@ class Polygon(Surface):
         return True
 
     def normalAt(self, p):
-        return self._normal
+        return self.normal
 
     @property
     def normal(self):
@@ -194,6 +193,34 @@ class Polygon(Surface):
         b = self.vertices[1]
         c = self.vertices[2]
         return QVector3D.crossProduct(c - a, b - a)
+
+
+class Plane(Surface):
+    def __init__(self, normal, pointInPlane, distance=QVector3D(1,1,1), color=QVector3D(255, 255, 255), material=None):
+        super().__init__(color, material)
+        self.normal = normal
+        self.point = pointInPlane
+        self.distance = distance
+        self._epsilon = 0.001
+
+    def intersect(self, ray, t0=0, t1=10000):
+        """ A point P is on the plane if Ndot(P-Q) = 0 , where Q is a point in the plane
+        :param ray:
+        :return:
+        """
+        if QVector3D.dotProduct(self.normal, ray.d) == 0:
+            return False
+        t = QVector3D.dotProduct(self.normal, (self.point - self.distance) - ray.e) / QVector3D.dotProduct(self.normal, ray.d)
+        if t < 0:
+            return False
+        return t
+
+    @property
+    def epsilon(self):
+        return self._epsilon
+
+    def normalAt(self, p):
+        return self.normal
 
 
 class Light(Sphere):
@@ -222,3 +249,32 @@ class Light(Sphere):
         NdotH = QVector3D.dotProduct(normal, halfVector)
         specular = lightColor * specularColor * pow(max(NdotH, 0.0), shininess)
         return lambert + specular
+
+    @staticmethod
+    def computeGoochLight( NdotL, reflect, eyepos):
+        surfaceColor = QVector3D(0.75 * 255, 0.75 * 255, 0.75 * 255)
+        warmColor = QVector3D(0.6 * 255, 0.6 * 255, 0.6 * 255)
+        coolColor = QVector3D(0.0, 0.0, 0.6)
+        diffuseWarm = 0.45
+        diffuseCool = 0.45
+        kcoolr = min((coolColor + diffuseCool * surfaceColor).x(), 255)
+        kcoolg = min((coolColor + diffuseCool * surfaceColor).y(), 255)
+        kcoolb = min((coolColor + diffuseCool * surfaceColor).z(), 255)
+        kwarmr = min((warmColor + diffuseWarm * surfaceColor).x(), 255)
+        kwarmg = min((warmColor + diffuseWarm * surfaceColor).y(), 255)
+        kwarmb = min((warmColor + diffuseWarm * surfaceColor).z(), 255)
+        kcool = QVector3D(kcoolr, kcoolg, kcoolb)
+        kwarm = QVector3D(kwarmr, kwarmg, kwarmb)
+        kfinal = mix(kcool, kwarm, NdotL)
+        nreflect = reflect.normalized()
+        nview = eyepos.normalized()
+        spec = max(QVector3D.dotProduct(nreflect,nview), 0.0)
+        spec = math.pow(spec, 100.0)
+        colorr = min((kfinal + QVector3D(spec, spec, spec)).x(), 255)
+        colorg = min((kfinal + QVector3D(spec, spec, spec)).y(), 255)
+        colorb = min((kfinal + QVector3D(spec, spec, spec)).z(), 255)
+        return QVector3D(colorr,colorg,colorb)
+
+
+def mix(colorOne, colorTwo, interpolateValue):
+    return colorOne * (1 - interpolateValue) + colorTwo * interpolateValue

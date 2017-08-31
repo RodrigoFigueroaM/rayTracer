@@ -73,5 +73,5 @@ class Camera(object):
         y = height - y
         xw = s * (x - 0.5 * (width + 1.0))
         yw = s * (y - 0.5 * (height + 1.0))
-        s = xw * self._right + yw * self._up - self._back * self.viewingPlaneDistance
-        return Ray(self.position, (s - self.position).normalized())
+        sw = xw * self._right + yw * self._up - self._back * self.viewingPlaneDistance
+        return Ray(self.position, (sw - self.position).normalized())

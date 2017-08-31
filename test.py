@@ -91,4 +91,16 @@ def testChallenge():
     # print(monsterFacing)
 
 
-print(QVector3D(0.5, 0.5, 0.5) * QVector3D(250,250,250) * 0.5)
+# print(QVector3D(0.5, 0.5, 0.5) * QVector3D(250,250,250) * 0.5)
+
+# T = QMatrix4x4()
+# T.rotate(-45, 0, 1, 0)
+#
+# print(T * QVector3D(0, 20, 1000))
+
+
+normal = QVector3D(0,1,0).normalized()
+dirLine = QVector3D.crossProduct(normal, QVector3D(5,6,2))
+pLine = QVector3D(5,3,10)
+
+print(QVector3D.dotProduct(dirLine, normal))

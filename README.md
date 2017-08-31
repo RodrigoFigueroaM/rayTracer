@@ -7,10 +7,10 @@ This is a very simple ray tracer that supports:
 - [x] Shadows
 - [x] Reflection
 - [ ] Refraction
-- [ ] Ray-Polygon Intersection
-- [ ] Intersecting a Group of Objects
+- [ ] Ray-Plane Intersection
 - [ ] Ray-Box intersection
 - [ ] Ray-Cylinder intersection
+- [ ] Anti-aliasing
 
 ## Example output
 #### simple raytracer
