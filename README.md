@@ -8,7 +8,7 @@ This is a very simple ray tracer that supports:
 - [x] Reflection
 - [x] Refraction
 - [x] Ray-Plane Intersection
-- [ ] Anti-aliasing
+- [x] Anti-aliasing using jittering
 - [ ] Load and intersect different models
 - [ ] Ray-Box intersection
 - [ ] Ray-Cylinder intersection

@@ -5,6 +5,7 @@ from rayTracer.PPM import PPMFile
 from rayTracer.Ray import Ray
 from rayTracer.Auxiliary3DMath import reflect
 import math
+from random import random
 
 EPSILON = 0.0000001
 
@@ -16,13 +17,18 @@ class World(object):
         self.background = background
     @staticmethod
     def renderToFile(camera, scene, maxT, file):
+        resN = 4
         light = scene.lights[0]
         for y in range(0, file.height):
             for x in range(0, file.width):
                 t = maxT
-                PrimaryRay = camera.rayTrace(x, y, file.height, file.width)
-                pixelColor = rayHitColor(PrimaryRay, camera, light, scene, 0, t, dept=-5)
-                pixelColor = PPMFile.clampPixel(pixel=pixelColor)
+                # Antialiasing using jittering
+                pixelColor = QVector3D()
+                for p in range(0, resN):
+                    for q in range(0, resN):
+                        PrimaryRay = camera.rayTrace(x + (p + random())/resN, y + (q + random())/resN, file.height, file.width)
+                        pixelColor += rayHitColor(PrimaryRay, camera, light, scene, 0, t, dept=-5)
+                pixelColor = PPMFile.clampPixel(pixel=pixelColor / (resN * resN))
                 file.writeQVector3DTofile(pixelColor)
         file.close()
 
