@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from PyQt5.QtGui import QMatrix4x4, QVector3D
+from PyQt5.QtGui import  QVector3D
 
 
 def reflect(I, N):

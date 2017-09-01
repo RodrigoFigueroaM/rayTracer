@@ -2,14 +2,14 @@
 from rayTracer.TraceObjects import Surface, Light
 
 
-class Scene(object):
+class Scene:
     def __init__(self, objects=[], lights=[]):
         self.objects = objects[:]
         self.lights = lights[:]
 
-    def addObject(self, item):
+    def add_object(self, item):
         if type(item) == type(Surface()):
             self.objects.append(item)
 
-    def addLight(self, item):
+    def add_light(self, item):
         self.lights.append(item)

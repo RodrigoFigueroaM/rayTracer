@@ -2,16 +2,12 @@
 import abc
 import math
 from PyQt5.QtGui import QMatrix4x4, QVector3D
-# from enum import Enum
-
 
 EPSILON = 0.0000001
 
 
 class Surface(abc.ABC):
-
-    def __init__(self, color=QVector3D(255, 255, 255), material=None):
-        self.color = color
+    def __init__(self, material=None):
         self.material = material
         self._epsilon = EPSILON
 
@@ -24,25 +20,25 @@ class Surface(abc.ABC):
         return self._epsilon
 
     @abc.abstractmethod
-    def normalAt(self, p=None):
+    def normal_at(self, p=None):
         pass
 
 
 class Sphere(Surface):
     """A sphere is defined with center c = (xc,yc,zc) and radius R """
 
-    def __init__(self, center=QVector3D(0, 0, 0), radius=1.0, color=QVector3D(255, 255, 255), material=None):
+    def __init__(self, center=QVector3D(0, 0, 0), radius=1.0, material=None):
         """
         :param center:  QVector3D
         :param radius:  QVector3D
         :param color:  QVector3D
         """
-        super().__init__(color, material)
+        super().__init__(material)
         self.c = center
         self.r = radius
         self._epsilon = 0.1
 
-    def normalAt(self, p):
+    def normal_at(self, p):
         """ The normal vector at point p is given by the gradient n = 2(p − c).
             The unit normal is (p − c)/R.
         :param p:  a QVector3D to reference the desired point in the sphere
@@ -89,14 +85,13 @@ class Sphere(Surface):
 class Triangle(Surface):
     """A triangle can be defined only with three vertices """
 
-    def __init__(self, a=QVector3D(0, 0, 0), b=QVector3D(0, 2, 0), c=QVector3D(2, 0, 0),
-                 color=QVector3D(255, 255, 255), material=None):
+    def __init__(self, a=QVector3D(0, 0, 0), b=QVector3D(0, 2, 0), c=QVector3D(2, 0, 0), material=None):
         """
         :param a:  QVector3D
         :param b:  QVector3D
         :param c:  QVector3D
         """
-        super().__init__(color, material)
+        super().__init__(material)
         self.a = a
         self.b = b
         self.c = c
@@ -151,7 +146,7 @@ class Triangle(Surface):
                 return False
         return t
 
-    def normalAt(self, p):
+    def normal_at(self, p):
         return self._normal
 
     @property
@@ -166,12 +161,12 @@ class Triangle(Surface):
 class Polygon(Surface):
     """A Polygon m vertices p1 through pm"""
 
-    def __init__(self, vertices=[], color=QVector3D(255, 255, 255)):
+    def __init__(self, vertices=[], material=None):
         """
         :param vertices: list of QVector3D
         :param color:
         """
-        super().__init__(color)
+        super().__init__(material)
         self.vertices = vertices
         self._normal = self.normal
 
@@ -184,7 +179,7 @@ class Polygon(Surface):
         p = ray.e + t * ray.d
         return True
 
-    def normalAt(self, p):
+    def normal_at(self, p):
         return self.normal
 
     @property
@@ -196,8 +191,8 @@ class Polygon(Surface):
 
 
 class Plane(Surface):
-    def __init__(self, normal, pointInPlane, distance=QVector3D(1,1,1), color=QVector3D(255, 255, 255), material=None):
-        super().__init__(color, material)
+    def __init__(self, normal, pointInPlane, distance=QVector3D(1,1,1), material=None):
+        super().__init__( material)
         self.normal = normal
         self.point = pointInPlane
         self.distance = distance
@@ -219,39 +214,40 @@ class Plane(Surface):
     def epsilon(self):
         return self._epsilon
 
-    def normalAt(self, p):
+    def normal_at(self, p):
         return self.normal
 
 
 class Light(Sphere):
     def __init__(self, origin, direction, color, shininess = 1.0):
-        super().__init__(origin, direction, color)
+        super().__init__(origin, direction)
+        self.color = color
         self.shininess = shininess
 
     def intersect(self, ray, t0=0, t1=10000):
         return super().intersect(ray, t0, t1)
 
     @staticmethod
-    def computeBlinnPhongLight(normal, lightDirection, diffuseColor, lightColor, halfVector, specularColor, shininess):
+    def compute_Blinn_Phong_light(normal, light_direction, diffuse_Color, light_color, half_vector, specular_color, shininess):
         """ Compute light for Blinn-Phong shader
         :param normal:  QVector3D normal at point t
-        :param lightDirection:  QVector3D direction of light
-        :param diffuseColor:  QVector3D
-        :param lightColor:  QVector3D
-        :param halfVector:  QVector3D
-        :param specularColor:  QVector3D
+        :param light_direction:  QVector3D direction of light
+        :param diffuse_Color:  QVector3D
+        :param light_color:  QVector3D
+        :param half_vector:  QVector3D
+        :param specular_color:  QVector3D
         :param shininess:  QVector3D
         :return:
             QVector3D with calculated value for lambert + specular
         """
-        NdotL = QVector3D.dotProduct(normal, lightDirection)
-        lambert = diffuseColor * lightColor * max(NdotL, 0.0)
-        NdotH = QVector3D.dotProduct(normal, halfVector)
-        specular = lightColor * specularColor * pow(max(NdotH, 0.0), shininess)
+        NdotL = QVector3D.dotProduct(normal, light_direction)
+        lambert = diffuse_Color * light_color * max(NdotL, 0.0)
+        NdotH = QVector3D.dotProduct(normal, half_vector)
+        specular = light_color * specular_color * pow(max(NdotH, 0.0), shininess)
         return lambert + specular
 
     @staticmethod
-    def computeGoochLight( NdotL, reflect, eyepos):
+    def computeGoochLight(NdotL, reflect, eye_pos):
         surfaceColor = QVector3D(0.75 * 255, 0.75 * 255, 0.75 * 255)
         warmColor = QVector3D(0.6 * 255, 0.6 * 255, 0.6 * 255)
         coolColor = QVector3D(0.0, 0.0, 0.6)
@@ -267,7 +263,7 @@ class Light(Sphere):
         kwarm = QVector3D(kwarmr, kwarmg, kwarmb)
         kfinal = mix(kcool, kwarm, NdotL)
         nreflect = reflect.normalized()
-        nview = eyepos.normalized()
+        nview = eye_pos.normalized()
         spec = max(QVector3D.dotProduct(nreflect,nview), 0.0)
         spec = math.pow(spec, 100.0)
         colorr = min((kfinal + QVector3D(spec, spec, spec)).x(), 255)
