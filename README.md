@@ -9,11 +9,9 @@ This is a very simple ray tracer that supports:
 - [x] Refraction
 - [x] Ray-Plane Intersection
 - [x] Antialiasing using jittering
-- [ ] Multihreaded
-- [-] Load and intersect different models (.obj)
-- [ ] Ray-Box intersection
-- [ ] Ray-Cylinder intersection
-
+- [x] Multihreaded
+- 
+- [] Load and intersect different models (.obj) 
 
 ## Example output
 #### Refraction and antialiasing
