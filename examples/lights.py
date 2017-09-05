@@ -1,13 +1,13 @@
 #! /usr/bin/env python
 from time import time
 from rayTracer.PPM import PPMFile
-from PyQt5.QtGui import QVector3D, QMatrix4x4
+from PyQt5.QtGui import QVector3D
 from rayTracer.Camera import Camera
-from rayTracer.PrimitiveObjects import Sphere, Triangle, Light, Plane
+from rayTracer.PrimitiveObjects import Sphere, Light
 from rayTracer.World import World
 from rayTracer.Scene import Scene
 from rayTracer.Material import Material
-from rayTracer.Model import Model
+
 
 
 def main():
@@ -23,12 +23,12 @@ def main():
 
     objects = [
         Sphere(QVector3D(0, 1, -100), 70,
-               material=Material(Material.Type.Reflective, color=QVector3D(100, 100, 100))),
+               material=Material(Material.Type.Default, color=QVector3D(100, 100, 100))),
     ]
 
     scene = Scene(objects)
-    scene.add_light(Light(QVector3D(100, 100, -100), 2, color=QVector3D(200, 0, 0), shininess=10))
-    scene.add_light(Light(QVector3D(-100, 100, -100), 2, color=QVector3D(0, 200, 0), shininess=10))
+    scene.add_light(Light(QVector3D(100, 50, -200), 2, color=QVector3D(200, 0, 0), shininess=100))
+    scene.add_light(Light(QVector3D(-100, 50, -200), 2, color=QVector3D(0, 200, 0), shininess=100))
 
     world = World(background=QVector3D(0, 0, 0), antialiasing_level=1, dept=0)
     world.render_to_file_using_treads_per_pixel(camera=camera, scene=scene, max_t=10000.0, file=file)

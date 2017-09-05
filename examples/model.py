@@ -3,10 +3,10 @@ from time import time
 from rayTracer.PPM import PPMFile
 from PyQt5.QtGui import QVector3D, QMatrix4x4
 from rayTracer.Camera import Camera
-from rayTracer.PrimitiveObjects import Sphere, Triangle, Light, Plane
+from rayTracer.PrimitiveObjects import Sphere, Light, Plane
 from rayTracer.World import World
 from rayTracer.Scene import Scene
-from rayTracer.Material import  Material
+from rayTracer.Material import Material
 from rayTracer.Model import Model
 
 
