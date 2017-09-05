@@ -9,9 +9,8 @@ This is a very simple ray tracer that supports:
 - [x] Refraction
 - [x] Ray-Plane Intersection
 - [x] Antialiasing using jittering
-- [x] Multihreaded
-- 
-- [] Load and intersect different models (.obj) 
+- [x] Multihreade
+- [] Load and intersect different triangulated models (.obj) 
 
 ## Example output
 #### Refraction and antialiasing
@@ -30,10 +29,12 @@ This is a very simple ray tracer that supports:
 - PyQt5
 
 ### Note:
-ppm images are very huge so i'll be using a ppm to jpg converter to display output images
+ppm images are huge so i'll be using a ppm to jpg converter to display output images
+
 ### How to execute program:
-1) cd into any of the directory and run
+1) cd into examples
+2) run any of the example files
 ```sh
-$ python main.py
+$ python raytracer.py
 ```
-2) output file under the name output.ppm
+3) output file under the name of ran file 

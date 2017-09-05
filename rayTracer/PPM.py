@@ -14,10 +14,13 @@ class PPMFile(object):
         self.name = file_name
         self.width = width
         self.height = height
-        self.file = open(file_name, "w")
+        self.file = None
+
+    def start(self):
+        self.file = open(self.name, "w")
         self.file.write("P3\n")
-        self.file.write("# {}.ppm\n".format(file_name))
-        self.file.write(str(width) + " " + str(height) + "\n")
+        self.file.write("# {}.ppm\n".format(self.name))
+        self.file.write(str(self.width) + " " + str(self.height) + "\n")
         self.file.write("255\n")
 
     def write_QVector3D_to_file(self, vector=None):

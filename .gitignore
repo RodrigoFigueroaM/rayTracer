@@ -120,3 +120,5 @@ rayTracerdepth5.ppm
 c++test.py
 GoochWorld.py
 almostThere.py
+*.obj
+threadi.py

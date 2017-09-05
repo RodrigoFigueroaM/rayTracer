@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from rayTracer.TraceObjects import Surface, Light
+from rayTracer.PrimitiveObjects import Surface, Light
 
 
 class Scene:

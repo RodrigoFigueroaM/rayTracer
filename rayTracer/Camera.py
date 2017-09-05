@@ -16,7 +16,7 @@ class Camera(object):
         #compute uvw
         self._dir = (look_at - self.position).normalized()
         self._back = (self.position - look_at).normalized()
-        self._right = QVector3D.crossProduct(up, self._back) # change order?
+        self._right = QVector3D.crossProduct(up, self._back)
         self._up = QVector3D.crossProduct(self._back, self._right)
         self._center = self.position + self.direction
 

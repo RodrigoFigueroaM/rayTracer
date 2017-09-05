@@ -78,9 +78,6 @@ class Sphere(Surface):
     def epsilon(self):
         return self._epsilon
 
-    def __str__(self):
-        return "{}".format(self.color)
-
 
 class Triangle(Surface):
     """A triangle can be defined only with three vertices """
@@ -97,6 +94,9 @@ class Triangle(Surface):
         self.c = c
         self._normal = self.normal
         self._epsilon = 0.001
+
+    def __str__(self):
+        return '{},{},{}'.format(self.a, self.b, self.c)
 
     def intersect(self, ray, t0=0, t1=10000):
         """ To determine intersection we need a system of linear equations:
@@ -135,16 +135,17 @@ class Triangle(Surface):
             t = T.determinant() / A.determinant()
             # First compute t
             if t1 < t < t0:
-                return False
+                return -1.0
             # Then compute γ
             y = Y.determinant() / A.determinant()
             if (y < 0) or (y > 1):
-                return False
+                return -1.0
             # Finally compute β
             b = B.determinant() / A.determinant()
             if (b < 0) or (b > 1 - y):
-                return False
-        return t
+                return -1.0
+            return t
+        return -1.0
 
     def normal_at(self, p):
         return self._normal
@@ -219,10 +220,14 @@ class Plane(Surface):
 
 
 class Light(Sphere):
-    def __init__(self, origin, direction, color, shininess = 1.0):
-        super().__init__(origin, direction)
+    def __init__(self, origin, r,  color, shininess = 1.0):
+        super(Light, self).__init__(origin,r)
+        self.direction = QVector3D()
         self.color = color
         self.shininess = shininess
+
+    def __copy__(self):
+        pass
 
     def intersect(self, ray, t0=0, t1=10000):
         return super().intersect(ray, t0, t1)
@@ -245,32 +250,3 @@ class Light(Sphere):
         NdotH = QVector3D.dotProduct(normal, half_vector)
         specular = light_color * specular_color * pow(max(NdotH, 0.0), shininess)
         return lambert + specular
-
-    @staticmethod
-    def computeGoochLight(NdotL, reflect, eye_pos):
-        surfaceColor = QVector3D(0.75 * 255, 0.75 * 255, 0.75 * 255)
-        warmColor = QVector3D(0.6 * 255, 0.6 * 255, 0.6 * 255)
-        coolColor = QVector3D(0.0, 0.0, 0.6)
-        diffuseWarm = 0.45
-        diffuseCool = 0.45
-        kcoolr = min((coolColor + diffuseCool * surfaceColor).x(), 255)
-        kcoolg = min((coolColor + diffuseCool * surfaceColor).y(), 255)
-        kcoolb = min((coolColor + diffuseCool * surfaceColor).z(), 255)
-        kwarmr = min((warmColor + diffuseWarm * surfaceColor).x(), 255)
-        kwarmg = min((warmColor + diffuseWarm * surfaceColor).y(), 255)
-        kwarmb = min((warmColor + diffuseWarm * surfaceColor).z(), 255)
-        kcool = QVector3D(kcoolr, kcoolg, kcoolb)
-        kwarm = QVector3D(kwarmr, kwarmg, kwarmb)
-        kfinal = mix(kcool, kwarm, NdotL)
-        nreflect = reflect.normalized()
-        nview = eye_pos.normalized()
-        spec = max(QVector3D.dotProduct(nreflect,nview), 0.0)
-        spec = math.pow(spec, 100.0)
-        colorr = min((kfinal + QVector3D(spec, spec, spec)).x(), 255)
-        colorg = min((kfinal + QVector3D(spec, spec, spec)).y(), 255)
-        colorb = min((kfinal + QVector3D(spec, spec, spec)).z(), 255)
-        return QVector3D(colorr,colorg,colorb)
-
-
-def mix(colorOne, colorTwo, interpolateValue):
-    return colorOne * (1 - interpolateValue) + colorTwo * interpolateValue
