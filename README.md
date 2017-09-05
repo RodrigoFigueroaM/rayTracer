@@ -10,7 +10,7 @@ This is a very simple ray tracer that supports:
 - [x] Ray-Plane Intersection
 - [x] Antialiasing using jittering
 - [x] Multihreade
-- [] Load and intersect different triangulated models (.obj) 
+- [x] Load and intersect different triangulated models (.obj) 
 
 ## Example output
 #### Refraction and antialiasing
