@@ -3,7 +3,7 @@ import math
 import os
 from random import random, sample
 from multiprocessing import cpu_count, Pool , current_process
-from multiprocessing.pool import ThreadPool
+from multiprocessing import Pool
 
 from PyQt5.QtGui import QVector3D, QVector2D
 from rayTracer.PrimitiveObjects import Surface, Light
@@ -22,29 +22,27 @@ class World(object):
         self.antialiasing_level = antialiasing_level
         self.depth = dept
 
-    def render_to_file_using_treads_per_pixel(self, camera, scene, max_t, file):
+    def render_to_file_using_treads_per_pixel(self, camera, scene, max_t, file, num_threads):
         """ computing parallel per pixel """
         self.scene = scene
         self.camera = camera
         self.file = file
 
-        num_cores = cpu_count()
+        num_cores = num_threads
         pool = Pool(processes=num_cores)
-        num_cores = cpu_count()
         print("Using", num_cores, " Cores")
         print("pool", pool)
 
-        pixels = []
-        for yx in range(0, file.width * file.height):
-            t = max_t
-            color = pool.apply_async(self.worker_per_pixel, (yx,)).get()
-            # color = pool.map(self.uno, (yx,))
-            pixels.append(color)
+        # color = pool.apply_async(self.worker_per_pixel, range(file.width * file.height))
+        # color = pool.map(self.worker_per_pixel,(yx,))[0]
+        # color = pool.apply(self.worker_per_pixel,(yx,) )
+        # color = pool.map_async(self.worker_per_pixel, range( file.width * file.height)).get()
+        color = pool.map(self.worker_per_pixel, range( file.width * file.height))
 
         pool.close()
         pool.join()
         file.start()
-        file.write_list_to_file(pixels)
+        file.write_list_to_file(color)
         file.close()
 
     def render_to_file_using_treads_per_ray(self, camera, scene, max_t, file):
