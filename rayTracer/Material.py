@@ -11,3 +11,6 @@ class Material:
         self.type = type
         self.color = color
         self.n = n
+        
+        if self.type == self.Type.Dielectric and self.n < 1.0:
+            raise ValueError('n on Dialectric has to be greater than 1')
