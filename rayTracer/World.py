@@ -11,10 +11,8 @@ from rayTracer.PPM import PPMFile
 from rayTracer.Ray import Ray
 from rayTracer.Auxiliary3DMath import reflect
 from rayTracer.Material import Material
-from threadi import Pixel
 
 EPSILON = 0.0000001
-
 
 class World(object):
     def __init__(self, background=QVector3D(0, 0, 0), antialiasing_level=1, dept=0):
@@ -190,12 +188,12 @@ class World(object):
                 reflection_object = hit(Ray(p, reflection_refraction_ray_direction), scene, 10000)[1]
                 reflection_object2 = hit(Ray(p, refraction_ray_dir), scene, 10000)[1]
                 if reflection_object and reflection_object2:
-                    return R * reflection_object.material.color + (1 - R) * reflection_object2.material.color
+                    return R * reflection_object.material.color + (1 - R) * reflection_object2.material.color + obj_hit.material.color
                 if reflection_object and not reflection_object2:
-                    return R * reflection_object.material.color
+                    return R * reflection_object.material.color + obj_hit.material.color
                 if reflection_object2 and not reflection_object:
-                    return (1 - R) * reflection_object2.material.color
-            return pixel_color
+                    return (1 - R) * reflection_object2.material.color + obj_hit.material.color
+            return pixel_color 
         return self.background
 
 
