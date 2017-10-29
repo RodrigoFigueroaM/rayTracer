@@ -22,9 +22,6 @@ This is a very simple ray tracer that supports:
 #### Shadow and reflection
 <img src="https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/reflection2.jpg" widht="450" height="450px"/>
 
-#### Simple raytracer
-<img src="https://github.com/RodrigoFigueroaM/rayTracer/blob/master/imgs/output.jpg" widht="450" height="450px"/>
-
 ## Libraries
 - PyQt5
 
