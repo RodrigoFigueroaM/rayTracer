@@ -19,6 +19,9 @@ class World(object):
         self.background = background
         self.antialiasing_level = antialiasing_level
         self.depth = dept
+        self.camera = None
+        self.scene = None
+        self.file = None
 
     def render_to_file_using_treads_per_pixel(self, camera, scene, max_t, file, num_threads):
         """ computing parallel per pixel """
@@ -97,6 +100,9 @@ class World(object):
 
 
     def render_to_file(self, camera, scene, max_t, file):
+        self.scene = scene
+        self.camera = camera
+        self.file = file
         pixels = []
         for y in range(0, file.height):
             for x in range(0, file.width):
@@ -128,44 +134,28 @@ class World(object):
         t, obj_hit = hit(ray, scene, max_t)
         if obj_hit:
             p = ray.e + ray.d * t
-            pixel_color = ambient_light_color + obj_hit.material.color
-            light_dir = (light.c - p).normalized()  # L
-            normal = obj_hit.normal_at(p)  # N
-            eye_dir = (camera.position - p).normalized()  # V
-            H = (eye_dir + light_dir).normalized()
+            pixel_color = ambient_light_color + obj_hit.shader.color
 
             # shadows
-            shadow_ray = Ray(p, light_dir)
+            shadow_ray = Ray(p, light.direction(p))
             distance_to_light = p.distanceToPoint(light.c)
             shadow_t, shadow_obj = hit(shadow_ray, scene, distance_to_light)
             if not shadow_obj:
-                shader = Light.compute_Blinn_Phong_light(normal=normal,
-                                                         light_direction=light_dir,
-                                                         diffuse_Color=QVector3D(0.5, 0.5, 0.5),
-                                                         light_color=light.color,
-                                                         half_vector=H,
-                                                         specular_color=QVector3D(1, 1, 1),
-                                                         shininess=light.shininess)
-                pixel_color = shader + obj_hit.material.color
+                shader = obj_hit.shader.compute( point=p, object=obj_hit, light=light, camera=camera)
+                pixel_color = shader + obj_hit.shader.color
                 # Multiple Point Lights
                 pixel_color = (ambient_light_color * 0.6) + pixel_color
 
             # Ideal specular
             if obj_hit.material.type == Material.Type.Reflective:
-                # reflect eye direction on N
-                reflection_ray_direction = reflect((p - camera.position), normal)
-                reflection_ray = Ray(p, reflection_ray_direction)
-                reflective_max_t = 10000
-                # see what it hits first
-                # compute illumination from ray * reflective constant
-                pixel_color += 0.2 * self.__ray_hit_color(reflection_ray, camera, scene, obj_hit.epsilon,
-                                                          reflective_max_t, dept + 1, light)
+                pixel_color += self.reflective(obj_hit, p, dept, light)
 
             # Refraction
             # Dielectrics we need some refractive index n, lets use optical glass: 1.49–1.92;
             # if p on dielectric
             if obj_hit.material.type == Material.Type.Dielectric:
                 n = obj_hit.material.n
+                normal = obj_hit.normal_at(p)
                 reflection_refraction_ray_direction = reflect(ray.d, normal)
                 if QVector3D.dotProduct(ray.d, normal) < 0:
                     refraction_ray_dir = refract(ray.d, normal, n)[1]
@@ -174,8 +164,8 @@ class World(object):
                 else:
                     a = 1.57
                     kr = math.exp(- math.log(a) * t)
-                    kg = math.exp(- math.log(a) * t)
-                    kb = math.exp(- math.log(a) * t)
+                    kg = math.exp(- math.log(2.5) * t)
+                    kb = math.exp(- math.log(1.2) * t)
                     is_ray_refracted, refraction_ray_dir = refract(ray.d, -normal, n / 0.5)
                     if is_ray_refracted:
                         cos_theta = QVector3D.dotProduct(refraction_ray_dir, normal)
@@ -188,14 +178,25 @@ class World(object):
                 reflection_object = hit(Ray(p, reflection_refraction_ray_direction), scene, 10000)[1]
                 reflection_object2 = hit(Ray(p, refraction_ray_dir), scene, 10000)[1]
                 if reflection_object and reflection_object2:
-                    return R * reflection_object.material.color + (1 - R) * reflection_object2.material.color + obj_hit.material.color
+                    return R * reflection_object.shader.color + (1 - R) * reflection_object2.shader.color + obj_hit.shader.color
                 if reflection_object and not reflection_object2:
-                    return R * reflection_object.material.color + obj_hit.material.color
+                    return R * reflection_object.shader.color + obj_hit.shader.color
                 if reflection_object2 and not reflection_object:
-                    return (1 - R) * reflection_object2.material.color + obj_hit.material.color
+                    return (1 - R) * reflection_object2.shader.color + obj_hit.shader.color
             return pixel_color 
         return self.background
 
+    def reflective(self, obj_hit, point, dept, light):
+        # Ideal specular
+        # reflect eye direction on N
+        normal = obj_hit.normal_at(point)
+        reflection_ray_direction = reflect((point - self.camera.position), normal)
+        reflection_ray = Ray(point, reflection_ray_direction)
+        reflective_max_t = 10000
+        # see what it hits first
+        # compute illumination from ray * reflective constant
+        return 0.2 * self.__ray_hit_color(reflection_ray, self.camera, self.scene, obj_hit.epsilon,
+                                                      reflective_max_t, dept + 1, light)
 
 def hit(ray, scene, infinity):
     t = infinity

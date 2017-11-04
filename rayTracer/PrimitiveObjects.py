@@ -7,8 +7,9 @@ EPSILON = 0.0000001
 
 
 class Surface(abc.ABC):
-    def __init__(self, material=None):
+    def __init__(self, material=None, shader=None):
         self.material = material
+        self.shader = shader
         self._epsilon = EPSILON
 
     @abc.abstractmethod
@@ -27,13 +28,13 @@ class Surface(abc.ABC):
 class Sphere(Surface):
     """A sphere is defined with center c = (xc,yc,zc) and radius R """
 
-    def __init__(self, center=QVector3D(0, 0, 0), radius=1.0, material=None):
+    def __init__(self, center=QVector3D(0, 0, 0), radius=1.0, material=None, shader=None):
         """
         :param center:  QVector3D
         :param radius:  QVector3D
         :param color:  QVector3D
         """
-        super().__init__(material)
+        super().__init__(material, shader)
         self.c = center
         self.r = radius
         self._epsilon = 0.1
@@ -82,13 +83,13 @@ class Sphere(Surface):
 class Triangle(Surface):
     """A triangle can be defined only with three vertices """
 
-    def __init__(self, a=QVector3D(0, 0, 0), b=QVector3D(0, 2, 0), c=QVector3D(2, 0, 0), material=None):
+    def __init__(self, a=QVector3D(0, 0, 0), b=QVector3D(0, 2, 0), c=QVector3D(2, 0, 0), material=None, shader=None):
         """
         :param a:  QVector3D
         :param b:  QVector3D
         :param c:  QVector3D
         """
-        super().__init__(material)
+        super().__init__(material, shader)
         self.a = a
         self.b = b
         self.c = c
@@ -162,12 +163,12 @@ class Triangle(Surface):
 class Polygon(Surface):
     """A Polygon m vertices p1 through pm"""
 
-    def __init__(self, vertices=[], material=None):
+    def __init__(self, vertices=[], material=None, shader=None):
         """
         :param vertices: list of QVector3D
         :param color:
         """
-        super().__init__(material)
+        super().__init__(material,shader)
         self.vertices = vertices
         self._normal = self.normal
 
@@ -192,8 +193,8 @@ class Polygon(Surface):
 
 
 class Plane(Surface):
-    def __init__(self, normal, pointInPlane, distance=QVector3D(1,1,1), material=None):
-        super().__init__( material)
+    def __init__(self, normal, pointInPlane, distance=QVector3D(1,1,1), material=None, shader=None):
+        super().__init__( material,shader)
         self.normal = normal
         self.point = pointInPlane
         self.distance = distance
@@ -222,7 +223,6 @@ class Plane(Surface):
 class Light(Sphere):
     def __init__(self, origin, r,  color, shininess = 1.0):
         super(Light, self).__init__(origin,r)
-        self.direction = QVector3D()
         self.color = color
         self.shininess = shininess
 
@@ -232,21 +232,5 @@ class Light(Sphere):
     def intersect(self, ray, t0=0, t1=10000):
         return super().intersect(ray, t0, t1)
 
-    @staticmethod
-    def compute_Blinn_Phong_light(normal, light_direction, diffuse_Color, light_color, half_vector, specular_color, shininess):
-        """ Compute light for Blinn-Phong shader
-        :param normal:  QVector3D normal at point t
-        :param light_direction:  QVector3D direction of light
-        :param diffuse_Color:  QVector3D
-        :param light_color:  QVector3D
-        :param half_vector:  QVector3D
-        :param specular_color:  QVector3D
-        :param shininess:  QVector3D
-        :return:
-            QVector3D with calculated value for lambert + specular
-        """
-        NdotL = QVector3D.dotProduct(normal, light_direction)
-        lambert = diffuse_Color * light_color * max(NdotL, 0.0)
-        NdotH = QVector3D.dotProduct(normal, half_vector)
-        specular = light_color * specular_color * pow(max(NdotH, 0.0), shininess)
-        return lambert + specular
+    def direction(self, point):
+        return (self.c - point).normalized()

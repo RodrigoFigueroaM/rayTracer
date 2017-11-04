@@ -6,9 +6,10 @@ from rayTracer.PrimitiveObjects import Triangle
 
 
 class Model:
-    def __init__(self, file_name=None, material=None):
+    def __init__(self, file_name=None, material=None, shader=None):
         self.name = file_name
         self.material = material
+        self.shader = shader
         self.triangles = []
         self.__load()
 
