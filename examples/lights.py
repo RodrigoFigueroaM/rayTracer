@@ -46,7 +46,7 @@ def main(num_threads):
 
         Sphere(QVector3D(0, 0, 100), 20,
                material=Material(type=Material.Type.Dielectric, n=3.5),
-               shader=Matte(QVector3D(10, 10, 10))),
+               shader=Blinn_Phong(QVector3D(10, 10, 10))),
     ]
 
     scene = Scene(objects)
