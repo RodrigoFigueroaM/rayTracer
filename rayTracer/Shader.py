@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 import abc
+from rayTracer.Auxiliary3DMath import reflect
 from PyQt5.QtGui import QMatrix4x4, QVector3D
 
 
@@ -26,6 +27,30 @@ class Blinn_Phong(Shader):
                    QVector3D with calculated value for lambert + specular
         """
         return Matte(self.color).compute(point, object, light, camera) + Specular(self.color).compute(point, object, light, camera)
+
+
+class Phong(Shader):
+    def __init__(self, color):
+        super().__init__(color=color)
+
+    def compute(self, point, object, light, camera):
+        """ Compute light for Blinn-Phong shader
+               :param point:  QVector3D point at point t
+               :param object:  Primitive object that got hit
+               :param light:  Light
+               :param camera: Camera
+               :return:
+                   QVector3D with calculated value for lambert + specular
+        """
+        specular_color = QVector3D(1.0, 1.0, 1.0)
+        ambient_color = QVector3D(0.2,0.2,0.2)
+        light_dir = light.direction(point)  # L
+        normal = object.normal_at(point)  # N
+        eye_dir = (camera.position - point).normalized()  # V
+        R = reflect(light_dir, normal)  # R
+        NdotR = QVector3D.dotProduct(-R, normal)
+        specular = light.color * specular_color * pow(max(NdotR, 0.0), light.shininess)
+        return Matte(self.color).compute(point, object, light, camera) + specular
 
 
 class Matte(Shader):
