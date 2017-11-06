@@ -7,7 +7,7 @@ from rayTracer.PrimitiveObjects import Sphere, Light, Plane
 from rayTracer.World import World
 from rayTracer.Scene import Scene
 from rayTracer.Material import Material
-from rayTracer.Shader import Blinn_Phong, Matte, Specular
+from rayTracer.Shader import Blinn_Phong, Matte, Specular, Phong
 
 
 
@@ -23,23 +23,30 @@ def main(num_threads):
                     viewing_plane_distance=1)
 
     objects = [
-        Plane(normal=QVector3D(0, 1, 0).normalized(), pointInPlane=QVector3D(0, 0, 0),
-              distance=QVector3D(100, 0, 10),
-              material=Material(Material.Type.Reflective),
-              shader=Blinn_Phong(QVector3D(30, 30, 50))),
+        # Plane(normal=QVector3D(0, 1, 0).normalized(), pointInPlane=QVector3D(0, 0, 0),
+        #       distance=QVector3D(100, 0, 10),
+        #       material=Material(Material.Type.Reflective),
+        #       shader=Blinn_Phong(QVector3D(30, 30, 50))),
 
         Sphere(QVector3D(0, 1, -100), 50,
                material=Material(type=Material.Type.Default),
                shader=Matte(QVector3D(10, 10, 10))),
 
 
-        Sphere(QVector3D(0, 75, 0), 50,
-               material=Material(type=Material.Type.Reflective),
-               shader=Blinn_Phong(QVector3D(10,10,10))),
-
-        Sphere(QVector3D(0, -50, 0), 50,
+        Sphere(QVector3D(30, 75, 0), 30,
                material=Material(type=Material.Type.Default),
-               shader=Specular(QVector3D(10, 10, 10))),
+               shader=Matte(QVector3D(10,10,10))),
+
+        Sphere(QVector3D(-30, 75, 0), 20,
+               material=Material(type=Material.Type.Reflective),
+               shader=Blinn_Phong(QVector3D(10, 10, 10))),
+        Sphere(QVector3D(-30, 35, 0), 20,
+               material=Material(type=Material.Type.Reflective),
+               shader=Phong(QVector3D(10, 10, 10))),
+
+        Sphere(QVector3D(0, 0, 100), 20,
+               material=Material(type=Material.Type.Dielectric, n=3.5),
+               shader=Matte(QVector3D(10, 10, 10))),
     ]
 
     scene = Scene(objects)
@@ -47,7 +54,7 @@ def main(num_threads):
     scene.add_light(Light(QVector3D(-100, 50, -200), 2, color=QVector3D(200, 0, 0), shininess=100))
     scene.add_light(Light(QVector3D(-100, 50, 200), 2, color=QVector3D(0, 200, 0), shininess=100))
 
-    world = World(background=QVector3D(0, 0, 0), antialiasing_level=4, dept=-1)
+    world = World(background=QVector3D(0, 0, 0), antialiasing_level=1, dept=-1)
     world.render_to_file_using_treads_per_pixel(camera=camera, scene=scene, max_t=10000.0, file=file, num_threads=num_threads)
 
     print(file.name)
