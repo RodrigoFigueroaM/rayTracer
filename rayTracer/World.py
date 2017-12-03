@@ -1,12 +1,9 @@
 #! /usr/bin/env python
 import math
-import os
-from random import random, sample
-from multiprocessing import cpu_count, Pool , current_process
+from random import random
 from multiprocessing import Pool
 
 from PyQt5.QtGui import QVector3D, QVector2D
-from rayTracer.PrimitiveObjects import Surface, Light
 from rayTracer.PPM import PPMFile
 from rayTracer.Ray import Ray
 from rayTracer.Auxiliary3DMath import reflect
@@ -87,37 +84,35 @@ class World(object):
         return pixel
 
     def __ray_hit_color(self, ray, camera, scene, min_t, max_t, dept, light):
-        if light.intersect(ray, t0=min_t, t1=max_t) > EPSILON:
-            return light.color
-
         if dept > 0:
             return self.background
 
-        t, obj_hit = self.hit(ray,  max_t)
-        if obj_hit:
-            p = ray.e + ray.d * t
-            pixel_color = self.ambient_color + obj_hit.shader.color
+        t, obj_hit = self.hit(ray, max_t)
+        if not obj_hit:
+            return self.background
 
-            # shadows
-            shadow_ray = Ray(p, light.direction(p))
-            distance_to_light = p.distanceToPoint(light.c)
-            shadow_t, shadow_obj = self.hit(shadow_ray, distance_to_light)
-            if not shadow_obj:
-                shader = obj_hit.shader.compute( point=p, object=obj_hit, light=light, camera=camera)
-                pixel_color = shader + obj_hit.shader.color
-                # Multiple Point Lights
-                pixel_color = (self.ambient_color * 0.6) + pixel_color
+        p = ray.e + ray.d * t
+        pixel_color = self.ambient_color + obj_hit.shader.color
 
-            # Reflective
-            if obj_hit.material.type == Material.Type.Reflective:
-                pixel_color += self.reflective(obj_hit, p, dept, light)
+        # shadows
+        shadow_ray = Ray(p, light.direction(p))
+        distance_to_light = p.distanceToPoint(light.c)
+        shadow_t, shadow_obj = self.hit(shadow_ray, distance_to_light)
+        if not shadow_obj:
+            shader = obj_hit.shader.compute(point=p, object=obj_hit, light=light, camera=camera)
+            pixel_color = shader + obj_hit.shader.color
+            # Multiple Point Lights
+            pixel_color = (self.ambient_color * 0.6) + pixel_color
 
-            # Refraction
-            if obj_hit.material.type == Material.Type.Dielectric:
-                dielectric = self.dielectric(obj_hit, ray, t)
-                return dielectric if dielectric else pixel_color
-            return pixel_color
-        return self.background
+        # Reflective
+        if obj_hit.material.type == Material.Type.Reflective:
+            pixel_color += self.reflective(obj_hit, p, dept, light)
+
+        # Refraction
+        if obj_hit.material.type == Material.Type.Dielectric:
+            dielectric = self.dielectric(obj_hit, ray, t)
+            return dielectric if dielectric else pixel_color
+        return pixel_color
 
     def reflective(self, obj_hit, point, dept, light):
         # Ideal specular
@@ -162,8 +157,6 @@ class World(object):
             return R * reflection_object.shader.color + obj_hit.shader.color
         if reflection_object2 and not reflection_object:
             return (1 - R) * reflection_object2.shader.color + obj_hit.shader.color
-        # else:
-        #     return QVector3D(0, 0, 0)
 
     def hit(self, ray, infinity):
         t = infinity
